@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZoomNET Bill</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            padding-bottom: 70px;
+        }
+        
+        /* Header */
+        .app-header {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .app-header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        /* Payment Summary Cards */
+        .payment-summary {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            margin: 10px;
+            border-radius: 10px;
+            background: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .payment-card {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 0 5px;
+        }
+        
+        .paid-card {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .due-card {
+            background: #F44336;
+            color: white;
+        }
+        
+        .payment-label {
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .payment-amount {
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+        
+        /* Search Bar */
+        .search-container {
+            padding: 10px;
+            margin: 10px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        /* Data Actions */
+        .data-actions {
+            display: flex;
+            gap: 10px;
+            padding: 0 10px 10px;
+        }
+        
+        .data-action-btn {
+            flex: 1;
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            text-align: center;
+        }
+        
+        .import-btn {
+            background: #3498db;
+        }
+        
+        /* Form Section */
+        .form-container {
+            background: white;
+            margin: 10px;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .form-row {
+            margin-bottom: 10px;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .form-button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 5px;
+        }
+        
+        /* Data Table */
+        .table-container {
+            margin: 10px;
+            overflow-x: auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        
+        .data-table th {
+            background: #3498db;
+            color: white;
+            padding: 10px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+        
+        .data-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .status {
+            padding: 5px 8px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-align: center;
+            display: inline-block;
+            min-width: 70px;
+        }
+        
+        .status-paid {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .status-unpaid {
+            background: #F44336;
+            color: white;
+        }
+        
+        .action-btn {
+            padding: 5px 8px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+        
+        .edit-btn {
+            background: #FFC107;
+            color: #333;
+        }
+        
+        .delete-btn {
+            background: #F44336;
+            color: white;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #555;
+            font-size: 0.8rem;
+        }
+        
+        .nav-item.active {
+            color: #3498db;
+        }
+        
+        .nav-icon {
+            font-size: 1.2rem;
+            margin-bottom: 3px;
+        }
+        
+        /* Hidden Elements */
+        .file-input {
+            display: none;
+        }
+        
+        /* Responsive Adjustments */
+        @media (max-width: 480px) {
+            .payment-summary {
+                flex-direction: column;
+            }
+            
+            .payment-card {
+                margin: 5px 0;
+            }
+            
+            .data-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- App Header -->
+    <header class="app-header">
+        <h1>ZoomNET Bill</h1>
+        <p>বিল ম্যানেজমেন্ট সিস্টেম</p>
+    </header>
+    
+    <!-- Payment Summary -->
+    <div class="payment-summary">
+        <div class="payment-card paid-card">
+            <div class="payment-label">মোট প্রদত্ত</div>
+            <div class="payment-amount" id="totalPaid">0 ৳</div>
+        </div>
+        <div class="payment-card due-card">
+            <div class="payment-label">মোট বকেয়া</div>
+            <div class="payment-amount" id="totalDue">0 ৳</div>
+        </div>
+    </div>
+    
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" class="search-input" id="searchInput" placeholder="সার্চ করুন..." oninput="searchEntries()">
+    </div>
+    
+    <!-- Data Actions -->
+    <div class="data-actions">
+        <button class="data-action-btn import-btn" onclick="document.getElementById('fileInput').click()">
+            এক্সেল ইমপোর্ট
+        </button>
+        <input type="file" id="fileInput" class="file-input" accept=".xlsx, .xls" onchange="handleFileImport(event)">
+        <button class="data-action-btn" onclick="exportData()">
+            এক্সেল এক্সপোর্ট
+        </button>
+    </div>
+    
+    <!-- Form Section -->
+    <div class="form-container" id="formSection">
+        <div class="form-row">
+            <input type="text" class="form-input" id="userId" placeholder="ইউজার আইডি">
+        </div>
+        <div class="form-row">
+            <input type="text" class="form-input" id="package" placeholder="প্যাকেজ">
+        </div>
+        <div class="form-row">
+            <input type="number" class="form-input" id="amount" placeholder="টাকার পরিমাণ">
+        </div>
+        <div class="form-row">
+            <input type="date" class="form-input" id="date">
+        </div>
+        <button class="form-button" onclick="addNewEntry()">যোগ করুন</button>
+    </div>
+    
+    <!-- Data Table -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ক্রমিক</th>
+                    <th>ইউজার আইডি</th>
+                    <th>প্যাকেজ</th>
+                    <th>টাকা</th>
+                    <th>তারিখ</th>
+                    <th>স্ট্যাটাস</th>
+                    <th>অ্যাকশন</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Data will be inserted here by JavaScript -->
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="scrollToTop()">
+            <span class="nav-icon">🏠</span>
+            <span>হোম</span>
+        </div>
+        <div class="nav-item" onclick="showFormSection()">
+            <span class="nav-icon">➕</span>
+            <span>নতুন</span>
+        </div>
+        <div class="nav-item" onclick="showDataActions()">
+            <span class="nav-icon">📁</span>
+            <span>ডাটা</span>
+        </div>
+    </nav>
+
+    <script>
+        // App Data
+        let allEntries = JSON.parse(localStorage.getItem('ZoomNETBillData')) || [
+            { userId: "ZZ141", package: "10 MBps", amount: "500", date: "2025-04-02", status: "Unpaid" },
+            { userId: "it_rajib", package: "10 MBps", amount: "500", date: "2025-04-02", status: "Unpaid" }
+        ];
+        
+        let editingIndex = -1;
+        const LOCAL_STORAGE_KEY = 'ZoomNETBillData';
+
+        // Initialize the app
+        function initApp() {
+            renderTable();
+            calculateTotals();
+        }
+        
+        // Calculate payment totals
+        function calculateTotals() {
+            let paidTotal = 0;
+            let dueTotal = 0;
+            
+            allEntries.forEach(entry => {
+                const amount = parseFloat(entry.amount) || 0;
+                if (entry.status === 'Paid') {
+                    paidTotal += amount;
+                } else {
+                    dueTotal += amount;
+                }
+            });
+            
+            document.getElementById('totalPaid').textContent = paidTotal + ' ৳';
+            document.getElementById('totalDue').textContent = dueTotal + ' ৳';
+        }
+        
+        // Save data to local storage
+        function saveData() {
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(allEntries));
+            calculateTotals();
+        }
+        
+        // Render the table
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = allEntries.map((entry, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${entry.userId}</td>
+                    <td>${entry.package}</td>
+                    <td>${entry.amount} ৳</td>
+                    <td>${entry.date}</td>
+                    <td><span class="status ${entry.status === 'Paid' ? 'status-paid' : 'status-unpaid'}" 
+                           onclick="toggleStatus(${index})">${entry.status}</span></td>
+                    <td>
+                        <button class="action-btn edit-btn" onclick="editEntry(${index})">এডিট</button>
+                        <button class="action-btn delete-btn" onclick="deleteEntry(${index})">ডিলিট</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // Add new entry
+        function addNewEntry() {
+            const userId = document.getElementById('userId').value;
+            const date = document.getElementById('date').value;
+            
+            if (!userId || !date) {
+                alert('ইউজার আইডি এবং তারিখ অবশ্যই দিতে হবে');
+                return;
+            }
+            
+            const existingIndex = allEntries.findIndex(entry => 
+                entry.userId === userId && entry.date === date
+            );
+            
+            const newEntry = {
+                userId: userId,
+                package: document.getElementById('package').value || "10 MBps",
+                amount: document.getElementById('amount').value || "500",
+                date: date,
+                status: existingIndex !== -1 ? allEntries[existingIndex].status : 'Unpaid'
+            };
+
+            if (existingIndex !== -1) {
+                allEntries[existingIndex] = newEntry;
+            } else if (editingIndex !== -1) {
+                allEntries[editingIndex] = newEntry;
+                editingIndex = -1;
+            } else {
+                allEntries.push(newEntry);
+            }
+
+            renderTable();
+            clearForm();
+            saveData();
+        }
+        
+        // Toggle payment status
+        function toggleStatus(index) {
+            allEntries[index].status = allEntries[index].status === 'Paid' ? 'Unpaid' : 'Paid';
+            renderTable();
+            saveData();
+        }
+        
+        // Edit entry
+        function editEntry(index) {
+            const entry = allEntries[index];
+            document.getElementById('userId').value = entry.userId;
+            document.getElementById('package').value = entry.package;
+            document.getElementById('amount').value = entry.amount;
+            document.getElementById('date').value = entry.date;
+            editingIndex = index;
+            
+            showFormSection();
+        }
+        
+        // Delete entry
+        function deleteEntry(index) {
+            if(confirm('আপনি কি নিশ্চিত?')) {
+                allEntries.splice(index, 1);
+                renderTable();
+                saveData();
+            }
+        }
+        
+        // Clear form
+        function clearForm() {
+            document.getElementById('userId').value = '';
+            document.getElementById('package').value = '';
+            document.getElementById('amount').value = '';
+            document.getElementById('date').value = '';
+            editingIndex = -1;
+        }
+        
+        // Search entries
+        function searchEntries() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const rows = document.querySelectorAll('#tableBody tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                let found = false;
+                
+                // Skip serial number column (index 0)
+                for (let i = 1; i < cells.length; i++) {
+                    if (cells[i].textContent.toLowerCase().includes(searchTerm)) {
+                        found = true;
+                        break;
+                    }
+                }
+                
+                row.style.display = found ? '' : 'none';
+            });
+        }
+        
+        // Handle Excel file import
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    if (jsonData.length === 0) {
+                        alert('ফাইলে কোনো ডাটা পাওয়া যায়নি');
+                        return;
+                    }
+                    
+                    const importedEntries = [];
+                    
+                    jsonData.forEach(row => {
+                        const userId = row['ইউজার আইডি'] || row['User ID'] || row['userid'] || row['userId'];
+                        const date = row['তারিখ'] || row['Date'] || row['date'];
+                        
+                        if (userId && date) {
+                            importedEntries.push({
+                                userId: userId.toString(),
+                                package: row['প্যাকেজ'] || row['Package'] || row['package'] || "10 MBps",
+                                amount: row['টাকার পরিমাণ'] || row['Amount'] || row['amount'] || "500",
+                                date: date.toString(),
+                                status: row['স্ট্যাটাস'] || row['Status'] || row['status'] || 'Unpaid'
+                            });
+                        }
+                    });
+                    
+                    if (importedEntries.length === 0) {
+                        alert('সঠিক ফরম্যাটে ডাটা পাওয়া যায়নি। কলাম হেডার হিসেবে "ইউজার আইডি" এবং "তারিখ" ব্যবহার করুন।');
+                        return;
+                    }
+                    
+                    // Merge with existing data
+                    importedEntries.forEach(newEntry => {
+                        const existingIndex = allEntries.findIndex(
+                            entry => entry.userId === newEntry.userId && entry.date === newEntry.date
+                        );
+                        
+                        if (existingIndex !== -1) {
+                            allEntries[existingIndex] = newEntry;
+                        } else {
+                            allEntries.push(newEntry);
+                        }
+                    });
+                    
+                    renderTable();
+                    saveData();
+                    alert(`সফলভাবে ${importedEntries.length} টি এন্ট্রি ইমপোর্ট করা হয়েছে`);
+                } catch (error) {
+                    console.error('Error importing file:', error);
+                    alert('ফাইল ইমপোর্ট করতে সমস্যা হয়েছে। ফাইল ফরম্যাট চেক করুন।');
+                }
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Export data to Excel
+        function exportData() {
+            try {
+                const exportData = allEntries.map((entry, index) => ({
+                    'ক্রমিক': index + 1,
+                    'ইউজার আইডি': entry.userId,
+                    'প্যাকেজ': entry.package,
+                    'টাকার পরিমাণ': entry.amount,
+                    'তারিখ': entry.date,
+                    'স্ট্যাটাস': entry.status
+                }));
+                
+                const worksheet = XLSX.utils.json_to_sheet(exportData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "ZoomNET Bill Data");
+                XLSX.writeFile(workbook, 'ZoomNET_Bill_Data.xlsx');
+            } catch (error) {
+                console.error('Error exporting data:', error);
+                alert('ডাটা এক্সপোর্ট করতে সমস্যা হয়েছে');
+            }
+        }
+        
+        // Helper functions
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function showFormSection() {
+            document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
+            document.getElementById('userId').focus();
+        }
+        
+        function showDataActions() {
+            document.querySelector('.data-actions').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Initialize the app when loaded
+        window.onload = initApp;
+    </script>
+</body>
+</html>
